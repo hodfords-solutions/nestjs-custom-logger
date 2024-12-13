@@ -3,51 +3,86 @@
 </p>
 
 <p align="center">
-Nestjs-Testing is a testing library for Nestjs applications. It provides a set of utilities to help you test your Nestjs application.
+NestJS Logging package to support structure log format and propgate request_id across service calls
 </p>
 
 ## Installation 🤖
 To begin using it, we first install the required dependencies.
 ```
-npm install @hodfords/nestjs-testing
+npm install @hodfords/nestjs-custom-logger
 ```
 
 ## Configuration 🚀
-To easily customize the configuration, let's create an object that extends the `BaseTestHelper` class. This object will be used to configure the test environment.
-
+#### Create logging.config.ts
 ```typescript
-export class TestHelper extends BaseTestHelper {
-    getSupertestConfig(): SupertestConfig {
-        return {
-            isUseBearerAuth: true,
-            authenticationHeader: 'Authorization'
-        };
-    }
+import { createLoggingConfig, LoggingModule } from '@hodfords/nestjs-custom-logger';
+import { env, isLocal } from './env.config';
 
-    getTestModuleBuilder(): TestingModuleBuilder {
-        return Test.createTestingModule({
-            imports: [AppModule]
-        });
+export const loggingConfig = createLoggingConfig({
+    serviceName: env.APP_NAME,
+    isLocal // if True, it will print as NestJS like, otherwise it will prints as json format
+});
+
+export const loggingModuleConfig = LoggingModule.forRoot();
+```
+
+#### Config to NestJS app
+```typescript
+this.app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+    logger: loggingConfig
+});
+```
+
+#### Config for microservice
+**Client side**
+```typescript
+import { setGrpcLoggingMetadata } from '@hodfords/nestjs-custom-logger';
+
+MicorserviceModule.register({
+    url: env.MICROSERVICES.SERVICE.URL,
+    timeout: 5000,
+    requestInitializer: (metadata: Metadata) => {
+        setGrpcLoggingMetadata(metadata);
     }
+}),
+```
+**Server side**
+
+You can add GrpcLoggingInterceptor into your app interceptor like this
+```typescript
+import { GrpcLoggingInterceptor } from '@hodfords/nestjs-logging';
+
+export function GrpcMicroservice(description?: string): any {
+    return applyDecorators(
+        Controller(),
+        UseFilters(GrpcExceptionFilter),
+        UsePipes(validateConfig),
+        UseInterceptors(
+            ClassSerializerInterceptor,
+            new GrpcTranslationInterceptor([LANGUAGE_KEY]),
+            new GrpcLoggingInterceptor() // add interceptor here
+        ),
+        RegisterGrpcMicroservice(description),
+        UseResponseInterceptor()
+    );
 }
 ```
 
+
 ## Usage 🚀
 
-Write your test cases using the `TestHelper` class.
-
 ```typescript
-describe('AppController (e2e)', () => {
-    let testHelper = new TestHelper();
+class AppController {
+    private logger = new Logger(APpController.name);
 
-    beforeAll(async () => {
-        await testHelper.initialize();
-    });
+    @Get()
+    async getHello(): Promise<string> {
+        this.logger.log('Hello World!');
 
-    it('Get index success', async () => {
-        return testHelper.get('/').isOk().expect('Hello World!');
-    });
-});
+        return 'Hello World!';
+    }
+}
 ```
 
 ## License
