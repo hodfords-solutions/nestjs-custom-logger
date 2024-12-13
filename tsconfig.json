@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "declaration": true,
     "removeComments": true,
-    "esModuleInterop": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
@@ -12,17 +13,17 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "~*": [
-        "src/*"
-      ],
-      "@hodfords/nestjs-testing": ["lib"]
-    }
-  }
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "useUnknownInCatchVariables": true,
+  },
+  "exclude": [
+    "tests",
+    "src",
+    "dist",
+    "node_modules"
+  ]
 }
