@@ -1,6 +1,6 @@
 {
   "name": "@hodfords/nestjs-custom-logger",
-  "version": "11.0.0",
+  "version": "11.0.1",
   "description": "Provide logging for NestJS applications",
   "homepage": "https://github.com/hodfords-solutions/nestjs-logging#readme",
   "bugprebuilds": {
